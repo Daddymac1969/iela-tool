@@ -14,7 +14,111 @@ exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
+aexports.handler = async (event) => {
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Content-Type': 'application/json'
+  };
 
+  if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers, body: '' };
+  if (event.httpMethod !== 'POST') return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method Not Allowed' }) };
+
+  try {
+    const { demographics = {}, ratings = {}, context: userContext = {} } = JSON.parse(event.body || '{}');
+
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return { statusCode: 500, headers, body: JSON.stringify({ error: 'ANTHROPIC_API_KEY not set in Netlify environment variables.' }) };
+    }
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 2000,
+        messages: [{ role: 'user', content: buildPrompt(demographics, ratings, userContext) }]
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return { statusCode: response.status, headers, body: JSON.stringify({ error: data.error?.message || 'Anthropic API error' }) };
+    }
+
+    return { statusCode: 200, headers, body: JSON.stringify({ analysis: data.content[0].text }) };
+
+  } catch (err) {
+    console.error(err);
+    return { statusCode: 500, headers, body: JSON.stringify({ error: err.message }) };
+  }
+};
+
+function buildPrompt(demographics, ratings, userContext) {
+  const roles = { head:'Head of School/Principal', slt:'Senior Leadership Team', inclusion_lead:'Inclusion/DEI Lead', safeguarding_lead:'Safeguarding Lead/DSL', middle_leader:'Middle Leader/HoD', teacher:'Classroom Teacher', pastoral:'Pastoral/Wellbeing Lead', governor:'Governor/Trustee', other:'Other' };
+  const sizes = { under_100:'Under 100', '100_300':'100-300', '300_500':'300-500', '500_800':'500-800', '800_1200':'800-1,200', over_1200:'Over 1,200' };
+  const types = { inner_city:'Inner City/Urban', suburban:'Suburban', rural:'Rural', international:'International' };
+
+  let ctx = '';
+  if (userContext) {
+    const parts = ['mission','policy','curriculum','culture','student','overall'].filter(k => userContext[k]?.trim());
+    if (parts.length) ctx = '\n\nADDITIONAL CONTEXT:\n' + parts.map(k => `${k}: ${userContext[k]}`).join('\n');
+  }
+
+  return `You are an expert in school inclusion and safeguarding, specialising in the RESPOND framework and C.OM.PAs approach from TASIS England.
+
+RESPOND: Recognise | Engage | Support | Pause | Offer | Notify | Document
+C.OM.PAs: Compassionate | Open-minded | Principled Actions
+GOLDEN THREAD: Values (C.OM.PAs) -> Policy -> Curriculum -> Culture (Adults) -> Student Experience
+
+SCHOOL CONTEXT:
+Role: ${roles[demographics.yourRole] || 'Not specified'} | Students: ${sizes[demographics.studentCount] || 'Not specified'} | Setting: ${types[demographics.schoolType] || 'Not specified'} | Model: ${(demographics.schoolModel||[]).join(', ')||'Not specified'} | Sector: ${demographics.schoolSector||'Not specified'} | Ages: ${(demographics.ageRanges||[]).join(', ')||'Not specified'} | Qualifications: ${(demographics.qualifications||[]).join(', ')||'Not specified'}
+
+SCORES (1-5):
+Mission & Values: ${ratings.mission_explicit}/5, ${ratings.leadership_models}/5
+Policy: ${ratings.policy_specific}/5, ${ratings.policy_reviewed}/5, ${ratings.policy_accessible}/5
+Curriculum: ${ratings.curriculum_diverse}/5, ${ratings.curriculum_embedded}/5, ${ratings.teacher_training}/5
+Culture: ${ratings.staff_challenge}/5, ${ratings.students_valued}/5, ${ratings.trust_response}/5
+Student Experience: ${ratings.student_trust}/5, ${ratings.student_voice}/5, ${ratings.student_perception}/5
+${ctx}
+
+Write a focused analysis in HTML using British English. Use these exact sections:
+
+<h2>Overall Assessment</h2>
+<p>[3 sentences: where this school sits on the stated-to-lived inclusion journey, 2 strengths, biggest gap]</p>
+
+<h2>Gap Analysis</h2>
+<p>[Where the Golden Thread breaks down. Name the specific score levels that are weakest and what that means in practice.]</p>
+
+<h2>Top 3 Priorities</h2>
+<div class="action-plan"><h3><span class="priority-badge priority-high">HIGH</span> [Title]</h3><p>[Impact and link to RESPOND/C.OM.PAs]</p></div>
+<div class="action-plan"><h3><span class="priority-badge priority-medium">MEDIUM</span> [Title]</h3><p>[Impact]</p></div>
+<div class="action-plan"><h3><span class="priority-badge priority-low">LOW</span> [Title]</h3><p>[Impact]</p></div>
+
+<h2>30-Day Action Plan</h2>
+<div class="action-plan"><h3>Action 1 (HIGH priority)</h3><p><strong>Who:</strong> [Role] &nbsp;|&nbsp; <strong>What:</strong> [2-3 concrete steps] &nbsp;|&nbsp; <strong>This week:</strong> [One immediate action]</p></div>
+<div class="action-plan"><h3>Action 2 (MEDIUM priority)</h3><p><strong>Who:</strong> [Role] &nbsp;|&nbsp; <strong>What:</strong> [2-3 concrete steps] &nbsp;|&nbsp; <strong>This week:</strong> [One immediate action]</p></div>
+<div class="action-plan"><h3>Action 3 (LOW priority)</h3><p><strong>Who:</strong> [Role] &nbsp;|&nbsp; <strong>What:</strong> [2-3 concrete steps] &nbsp;|&nbsp; <strong>This week:</strong> [One immediate action]</p></div>
+
+<h2>Context-Specific Insights</h2>
+<div class="insight-box"><p>[3 observations specific to their school type, size and sector. Reference C.OM.PAs principles.]</p></div>
+
+<h2>Next Steps (Months 2-6)</h2>
+<p>[Months 2-3 focus. Months 4-6 focus. One long-term cultural shift to embed.]</p>
+
+<h2>Resources</h2>
+<p><strong>RESPOND Framework:</strong> <a href="https://www.respondsafeguarding.org" target="_blank">www.respondsafeguarding.org</a><br>
+<strong>Contact:</strong> dsinghmacpherson@tasisengland.org &nbsp;|&nbsp; cwilliams@tasisengland.org</p>
+
+<div class="insight-box"><h3>A final thought</h3><p>[One personalised encouragement linked to their role and scores. End with a C.OM.PAs principle most relevant to their situation.]</p></div>
+
+CRITICAL: British English throughout. 1200-1500 words. Every recommendation must be actionable and school-context specific.`;
+}
   try {
     let assessmentData;
     try {
