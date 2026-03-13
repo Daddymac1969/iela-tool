@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IELA AI-Powered Inclusion Assessment</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -27,8 +29,21 @@
             margin: -40px -40px 40px -40px;
             border-left: 5px solid #FF6B35;
         }
+        .header i {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
         h1 { font-size: 2em; margin-bottom: 10px; }
-        h2 { color: #073B4C; margin: 30px 0 15px 0; padding-bottom: 10px; border-bottom: 3px solid #FF6B35; }
+        h2 { 
+            color: #073B4C; 
+            margin: 30px 0 15px 0; 
+            padding-bottom: 10px; 
+            border-bottom: 3px solid #FF6B35; 
+        }
+        h2 i {
+            margin-right: 10px;
+            color: #FF6B35;
+        }
         h3 { color: #2c5282; margin: 20px 0 10px 0; }
         .intro {
             background: #e8f4f8;
@@ -36,6 +51,10 @@
             border-left: 4px solid #06D6A0;
             margin-bottom: 30px;
             border-radius: 5px;
+        }
+        .intro i {
+            margin-right: 8px;
+            color: #073B4C;
         }
         .demographics-section {
             background: #fff5f0;
@@ -60,15 +79,21 @@
             margin-bottom: 8px;
         }
         .form-group input,
-        .form-group select {
+        .form-group select,
+        .form-group textarea {
             padding: 12px;
             border: 2px solid #e9ecef;
             border-radius: 8px;
             font-size: 1em;
             font-family: inherit;
         }
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
         .form-group input:focus,
-        .form-group select:focus {
+        .form-group select:focus,
+        .form-group textarea:focus {
             outline: none;
             border-color: #FF6B35;
         }
@@ -141,6 +166,17 @@
             font-weight: 600;
             margin-bottom: 5px;
         }
+        .text-field-section {
+            background: #f0f8ff;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 5px solid #118AB2;
+        }
+        .text-field-section i {
+            margin-right: 8px;
+            color: #118AB2;
+        }
         .btn {
             background: linear-gradient(45deg, #FF6B35, #F7931E);
             color: white;
@@ -152,6 +188,9 @@
             margin: 10px 5px;
             font-weight: 600;
             transition: all 0.3s ease;
+        }
+        .btn i {
+            margin-right: 10px;
         }
         .btn:hover:not(:disabled) {
             transform: translateY(-2px);
@@ -205,6 +244,9 @@
         }
         .save-status.show {
             opacity: 1;
+        }
+        .save-status i {
+            margin-right: 5px;
         }
         .progress-indicator {
             background: #e9ecef;
@@ -278,11 +320,11 @@
     </style>
 </head>
 <body>
-    <div class="save-status" id="saveStatus">✓ Saved</div>
+    <div class="save-status" id="saveStatus"><i class="fas fa-check-circle"></i> Saved</div>
     
     <div class="container">
         <div class="header">
-            <h1>🎯 AI-Powered Inclusion Self-Assessment</h1>
+            <h1><i class="fas fa-bullseye"></i> AI-Powered Inclusion Self-Assessment</h1>
             <p>From IELA Conference 2026: Inclusion as the Golden Thread</p>
             <p style="margin-top: 10px; font-size: 0.9em;">Get personalised analysis and action plans powered by Claude AI</p>
         </div>
@@ -290,16 +332,18 @@
         <div class="intro">
             <h3>How This Works</h3>
             <p>Complete the assessment and receive AI-generated insights tailored to your school's context. Your responses are analysed to identify gaps, prioritise actions, and create a concrete 30-day plan.</p>
-            <p style="margin-top: 10px;"><strong>⏱️ Time required:</strong> 25-35 minutes<br>
-            <strong>🤖 AI Analysis:</strong> Personalised feedback and action plan<br>
-            <strong>💾 Auto-save:</strong> Your progress is saved as you work</p>
+            <p style="margin-top: 10px;">
+                <strong><i class="far fa-clock"></i> Time required:</strong> 25-35 minutes<br>
+                <strong><i class="fas fa-robot"></i> AI Analysis:</strong> Personalised feedback and action plan<br>
+                <strong><i class="fas fa-save"></i> Auto-save:</strong> Your progress is saved as you work
+            </p>
         </div>
 
         <div class="progress-indicator">
             <div class="progress-bar" id="progressBar"></div>
         </div>
 
-        <h2>📊 School Context</h2>
+        <h2><i class="fas fa-chart-bar"></i> School Context</h2>
         <p>Help us tailor the analysis to your school's unique situation.</p>
 
         <div class="demographics-section">
@@ -440,7 +484,7 @@
             </div>
         </div>
 
-        <h2>🎯 Golden Thread Assessment</h2>
+        <h2><i class="fas fa-bullseye"></i> Golden Thread Assessment</h2>
         <p>Click the number that best represents your school. Your selections save automatically.</p>
 
         <div class="assessment-section">
@@ -496,6 +540,12 @@
                         <span>Consistently exemplary</span>
                     </div>
                 </div>
+            </div>
+
+            <div class="text-field-section">
+                <label><i class="fas fa-comment-dots"></i> <strong>Additional Context (Optional):</strong></label>
+                <p style="font-size: 0.9em; margin: 5px 0 10px 0; color: #666;">Share any examples, concerns, or context about your mission and leadership's approach to inclusion.</p>
+                <textarea id="context_mission" placeholder="E.g., 'Our mission was written 30 years ago and doesn't reflect our current diversity...'" oninput="saveData()"></textarea>
             </div>
         </div>
 
@@ -579,6 +629,12 @@
                     </div>
                 </div>
             </div>
+
+            <div class="text-field-section">
+                <label><i class="fas fa-comment-dots"></i> <strong>Additional Context (Optional):</strong></label>
+                <p style="font-size: 0.9em; margin: 5px 0 10px 0; color: #666;">Share any challenges with policy implementation, gaps you've noticed, or recent policy changes.</p>
+                <textarea id="context_policy" placeholder="E.g., 'Staff struggle to find policies when needed because they're scattered across different platforms...'" oninput="saveData()"></textarea>
+            </div>
         </div>
 
         <div class="assessment-section">
@@ -660,6 +716,12 @@
                         <span>Ongoing CPD cycle</span>
                     </div>
                 </div>
+            </div>
+
+            <div class="text-field-section">
+                <label><i class="fas fa-comment-dots"></i> <strong>Additional Context (Optional):</strong></label>
+                <p style="font-size: 0.9em; margin: 5px 0 10px 0; color: #666;">Share specific curriculum initiatives, teacher training programmes, or areas where you'd like support.</p>
+                <textarea id="context_curriculum" placeholder="E.g., 'We've decolonised our English curriculum but haven't addressed Maths or Science yet...'" oninput="saveData()"></textarea>
             </div>
         </div>
 
@@ -743,6 +805,12 @@
                     </div>
                 </div>
             </div>
+
+            <div class="text-field-section">
+                <label><i class="fas fa-comment-dots"></i> <strong>Additional Context (Optional):</strong></label>
+                <p style="font-size: 0.9em; margin: 5px 0 10px 0; color: #666;">Share examples of how staff respond to incidents, any recent discrimination cases, or concerns about staff culture.</p>
+                <textarea id="context_culture" placeholder="E.g., 'Staff feel uncomfortable challenging senior colleagues even when they use problematic language...'" oninput="saveData()"></textarea>
+            </div>
         </div>
 
         <div class="assessment-section">
@@ -825,11 +893,23 @@
                     </div>
                 </div>
             </div>
+
+            <div class="text-field-section">
+                <label><i class="fas fa-comment-dots"></i> <strong>Additional Context (Optional):</strong></label>
+                <p style="font-size: 0.9em; margin: 5px 0 10px 0; color: #666;">Share what students are telling you (or not telling you), any student voice data you have, or specific inclusion concerns raised by students.</p>
+                <textarea id="context_student" placeholder="E.g., 'Recent student survey showed LGBTQ+ students feel less safe than others. Exit interviews mention lack of representation...'" oninput="saveData()"></textarea>
+            </div>
+        </div>
+
+        <div class="text-field-section" style="border-left-color: #06D6A0;">
+            <label><i class="fas fa-lightbulb"></i> <strong>Overall Priorities & Context (Optional):</strong></label>
+            <p style="font-size: 0.9em; margin: 5px 0 10px 0; color: #666;">Is there anything else you'd like the AI analysis to consider? Recent incidents, upcoming initiatives, resource constraints, or specific areas where you need support?</p>
+            <textarea id="context_overall" placeholder="E.g., 'We're merging with another school next year and need to align our inclusion approaches. Our Head is very supportive but governors are resistant to change...'" oninput="saveData()" style="min-height: 120px;"></textarea>
         </div>
 
         <div style="text-align: center; margin: 40px 0;">
             <button class="btn" id="analyzeBtn" onclick="generateAnalysis()" disabled>
-                🤖 Generate AI Analysis & Action Plan
+                <i class="fas fa-robot"></i> Generate AI Analysis & Action Plan
             </button>
             <p style="margin-top: 15px; color: #666; font-size: 0.9em;" id="readyMessage">Complete all questions to unlock AI analysis</p>
         </div>
@@ -852,7 +932,8 @@
     <script>
         let assessmentData = {
             demographics: {},
-            ratings: {}
+            ratings: {},
+            context: {}
         };
 
         window.onload = function() {
@@ -882,6 +963,15 @@
                 schoolSector: document.getElementById('schoolSector').value,
                 ageRanges: Array.from(document.querySelectorAll('input[type="checkbox"][id^="age_"]:checked')).map(el => el.value),
                 qualifications: Array.from(document.querySelectorAll('input[type="checkbox"][id^="qual_"]:checked')).map(el => el.value)
+            };
+
+            assessmentData.context = {
+                mission: document.getElementById('context_mission').value,
+                policy: document.getElementById('context_policy').value,
+                curriculum: document.getElementById('context_curriculum').value,
+                culture: document.getElementById('context_culture').value,
+                student: document.getElementById('context_student').value,
+                overall: document.getElementById('context_overall').value
             };
             
             localStorage.setItem('iela_ai_assessment', JSON.stringify(assessmentData));
@@ -922,6 +1012,15 @@
                         });
                     }
                 }
+
+                if (assessmentData.context) {
+                    if (assessmentData.context.mission) document.getElementById('context_mission').value = assessmentData.context.mission;
+                    if (assessmentData.context.policy) document.getElementById('context_policy').value = assessmentData.context.policy;
+                    if (assessmentData.context.curriculum) document.getElementById('context_curriculum').value = assessmentData.context.curriculum;
+                    if (assessmentData.context.culture) document.getElementById('context_culture').value = assessmentData.context.culture;
+                    if (assessmentData.context.student) document.getElementById('context_student').value = assessmentData.context.student;
+                    if (assessmentData.context.overall) document.getElementById('context_overall').value = assessmentData.context.overall;
+                }
                 
                 if (assessmentData.ratings) {
                     Object.keys(assessmentData.ratings).forEach(questionId => {
@@ -959,11 +1058,11 @@
             
             if (answered === totalQuestions) {
                 analyzeBtn.disabled = false;
-                readyMessage.textContent = '✓ Ready! Click to generate your personalised analysis';
+                readyMessage.innerHTML = '<i class="fas fa-check-circle"></i> Ready! Click to generate your personalised analysis';
                 readyMessage.style.color = '#06D6A0';
             } else {
                 analyzeBtn.disabled = true;
-                readyMessage.textContent = `Complete all questions to unlock AI analysis (${answered}/${totalQuestions} answered)`;
+                readyMessage.innerHTML = `<i class="fas fa-hourglass-half"></i> Complete all questions to unlock AI analysis (${answered}/${totalQuestions} answered)`;
                 readyMessage.style.color = '#666';
             }
         }
@@ -1000,7 +1099,7 @@
                 loadingIndicator.style.display = 'none';
                 analysisContent.innerHTML = `
                     <div class="insight-box" style="background: #dc3545;">
-                        <h3>⚠️ Analysis Error</h3>
+                        <h3><i class="fas fa-exclamation-triangle"></i> Analysis Error</h3>
                         <p>There was an error generating your analysis. Please try again in a moment.</p>
                         <p style="margin-top: 10px; font-size: 0.9em;">Error: ${error.message}</p>
                     </div>
