@@ -3,3 +3,12 @@
 
 [functions]
   node_bundler = "esbuild"
+  
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[functions."analyze"]
+  included_files = ["**/*.js"]
+  timeout = 60
