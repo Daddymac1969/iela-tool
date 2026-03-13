@@ -1252,20 +1252,30 @@
                     body: JSON.stringify({ demographics, ratings, context })
                 });
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                let data;
+                const contentType = response.headers.get('content-type') || '';
+                if (!contentType.includes('application/json')) {
+                    throw new Error(`Server error (${response.status}). The analysis function may not be deployed. Please check Netlify functions are active.`);
                 }
 
-                const data = await response.json();
-                
+                data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || `Server error (${response.status})`);
+                }
+
+                if (!data.analysis) {
+                    throw new Error('No analysis returned. Please try again.');
+                }
+
                 document.getElementById('analysisContent').innerHTML = data.analysis;
                 document.getElementById('analysisSection').classList.add('show');
                 document.getElementById('analysisSection').scrollIntoView({ behavior: 'smooth' });
 
             } catch (error) {
                 console.error('Error:', error);
-                alert('Failed to generate analysis. Please try again. Error: ' + error.message);
+                const msg = error.message || 'Unknown error. Please try again.';
+                alert('Analysis failed.\n\n' + msg);
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-brain"></i> Generate AI Analysis';
