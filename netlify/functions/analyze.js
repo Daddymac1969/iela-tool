@@ -102,12 +102,12 @@ function buildPrompt(demographics = {}, ratings = {}, userContext = {}) {
   return `You are an expert in school inclusion, equity, diversity, and safeguarding, specialising in the RESPOND framework and C.OM.PAs approach from TASIS England.
 
 RESPOND FRAMEWORK - THE 7 STEPS:
-R – Recognise | E – Engage | S – Support | P – Pause | O – Offer | N – Notify | D – Document
+R - Recognise | E - Engage | S - Support | P - Pause | O - Offer | N - Notify | D - Document
 
 C.OM.PAs: Compassionate | Open-minded | Principled Actions
 
 THE GOLDEN THREAD:
-Values (C.OM.PAs) → Policy → Curriculum/Teaching → Culture (Adults) → Student Experience
+Values (C.OM.PAs) -> Policy -> Curriculum/Teaching -> Culture (Adults) -> Student Experience
 
 Inclusion is only "lived" when it reaches the student experience level.
 
@@ -132,30 +132,30 @@ ${contextSection}
 
 Provide analysis in HTML using British English. Structure:
 
-<h2>🎯 Overall Assessment</h2>
+<h2>Overall Assessment</h2>
 <p>[2-3 sentence summary. Key strengths and critical gaps mapped to the Golden Thread.]</p>
 
-<h2>🔍 Gap Analysis</h2>
+<h2>Gap Analysis</h2>
 <p>[Where the Golden Thread breaks down across the five levels. Be specific about which scores reveal the weakest links.]</p>
 
-<h2>🚨 Top 3 Priorities</h2>
+<h2>Top 3 Priorities</h2>
 <div class="action-plan"><h3><span class="priority-badge priority-high">HIGH</span> [Area]</h3><p>[Why it matters and RESPOND/C.OM.PAs connection.]</p></div>
 <div class="action-plan"><h3><span class="priority-badge priority-medium">MEDIUM</span> [Area]</h3><p>[Why it matters.]</p></div>
 <div class="action-plan"><h3><span class="priority-badge priority-low">LOW</span> [Area]</h3><p>[Why it matters.]</p></div>
 
-<h2>📋 30-Day Actions</h2>
+<h2>30-Day Actions</h2>
 <div class="action-plan"><h3>Action 1: [Specific action for HIGH priority]</h3><p><strong>Who:</strong> [Role] | <strong>What:</strong> [Concrete steps] | <strong>Quick win:</strong> [This week]</p></div>
 <div class="action-plan"><h3>Action 2: [Specific action for MEDIUM priority]</h3><p><strong>Who:</strong> [Role] | <strong>What:</strong> [Concrete steps] | <strong>Quick win:</strong> [This week]</p></div>
 <div class="action-plan"><h3>Action 3: [Specific action for LOW priority]</h3><p><strong>Who:</strong> [Role] | <strong>What:</strong> [Concrete steps] | <strong>Quick win:</strong> [This week]</p></div>
 
-<h2>💡 Context-Specific Insight</h2>
+<h2>Context-Specific Insight</h2>
 <div class="insight-box"><p>[3 tailored observations for their specific school context, size and sector.]</p></div>
 
-<h2>📚 Resources</h2>
+<h2>Resources</h2>
 <p><strong>RESPOND Framework:</strong> <a href="https://www.respondsafeguarding.org" target="_blank">www.respondsafeguarding.org</a></p>
 <p><strong>Contact:</strong> dsinghmacpherson@tasisengland.org or cwilliams@tasisengland.org</p>
 
-<div class="insight-box"><h3>✅ Next Steps</h3><p>[Months 2-3 goals and one cultural shift to aim for.]</p></div>
+<div class="insight-box"><h3>Next Steps</h3><p>[Months 2-3 goals and one cultural shift to aim for.]</p></div>
 
 CRITICAL: British English. Reference RESPOND and C.OM.PAs. 1200-1500 words. Actionable and specific.`;
 }
