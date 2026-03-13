@@ -1,50 +1,121 @@
 const Anthropic = require("@anthropic-ai/sdk");
 
 exports.handler = async (event, context) => {
+  // Set CORS headers
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Content-Type': 'application/json'
+  };
+
+  // Handle OPTIONS request
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 200, headers, body: '' };
+  }
+
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
+      headers,
       body: JSON.stringify({ error: 'Method Not Allowed' })
     };
   }
 
   try {
-    const assessmentData = JSON.parse(event.body);
-    const { demographics, ratings } = assessmentData;
+    console.log('Starting analysis...');
+    
+    // Parse request body
+    let assessmentData;
+    try {
+      assessmentData = JSON.parse(event.body);
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ error: 'Invalid JSON in request body' })
+      };
+    }
 
+    const { demographics, ratings, context: userContext } = assessmentData;
+
+    // Validate required data
+    if (!ratings || Object.keys(ratings).length === 0) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ error: 'No ratings provided' })
+      };
+    }
+
+    // Check API key
+    if (!process.env.ANTHROPIC_API_KEY) {
+      console.error('ANTHROPIC_API_KEY not set');
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({ 
+          error: 'API key not configured. Please add ANTHROPIC_API_KEY to Netlify environment variables.' 
+        })
+      };
+    }
+
+    console.log('Initializing Anthropic client...');
     const anthropic = new Anthropic({
       apiKey: process.env.ANTHROPIC_API_KEY,
     });
 
-    const prompt = buildPrompt(demographics, ratings);
+    console.log('Building prompt...');
+    const prompt = buildPrompt(demographics, ratings, userContext);
 
+    console.log('Calling Anthropic API...');
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
-      max_tokens: 4000,
+      max_tokens: 6000,
       messages: [{ role: "user", content: prompt }]
+      // REMOVED: timeout parameter - not supported by Anthropic API
     });
 
+    console.log('Analysis complete');
     const analysis = message.content[0].text;
 
     return {
       statusCode: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ analysis })
     };
 
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Function error:', error);
+    console.error('Error stack:', error.stack);
+    
+    let errorMessage = 'Failed to generate analysis';
+    let statusCode = 500;
+
+    if (error.status === 401) {
+      errorMessage = 'Invalid API key. Please check your ANTHROPIC_API_KEY in Netlify environment variables.';
+    } else if (error.status === 429) {
+      errorMessage = 'Rate limit exceeded. Please wait a moment and try again.';
+      statusCode = 429;
+    } else if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
+      errorMessage = 'Could not connect to Anthropic API. Please check your internet connection.';
+    } else if (error.message) {
+      errorMessage = `Error: ${error.message}`;
+    }
+    
     return {
-      statusCode: 500,
+      statusCode,
+      headers,
       body: JSON.stringify({ 
-        error: 'Failed to generate analysis',
-        details: error.message 
+        error: errorMessage,
+        details: error.message,
+        type: error.constructor.name
       })
     };
   }
 };
 
-function buildPrompt(demographics, ratings) {
+function buildPrompt(demographics = {}, ratings = {}, userContext = {}) {
   const roleLabels = {
     'head': 'Head of School / Principal',
     'slt': 'Senior Leadership Team',
@@ -52,7 +123,7 @@ function buildPrompt(demographics, ratings) {
     'safeguarding_lead': 'Safeguarding Lead / DSL',
     'middle_leader': 'Middle Leader / Head of Department',
     'teacher': 'Classroom Teacher',
-    'pastoral': 'Pastoral / Wellbeing Lead',
+    'pastoral': 'Wellbeing Lead',
     'governor': 'Governor / Trustee',
     'other': 'Other'
   };
@@ -73,107 +144,101 @@ function buildPrompt(demographics, ratings) {
     'international': 'International'
   };
 
-  return `You are an expert in school inclusion, equity, diversity, and safeguarding, specialising in the RESPOND framework and C.OM.PAs (Compassionate, Open-minded, Principled Actions) approach from TASIS England.
+  // Build context sections if provided
+  let contextSection = '';
+  if (userContext && Object.values(userContext).some(v => v && v.trim())) {
+    contextSection = '\n\nADDITIONAL CONTEXT PROVIDED:\n';
+    if (userContext.mission?.trim()) contextSection += `\nMission & Values: ${userContext.mission}`;
+    if (userContext.policy?.trim()) contextSection += `\nPolicy: ${userContext.policy}`;
+    if (userContext.curriculum?.trim()) contextSection += `\nCurriculum: ${userContext.curriculum}`;
+    if (userContext.culture?.trim()) contextSection += `\nCulture: ${userContext.culture}`;
+    if (userContext.student?.trim()) contextSection += `\nStudent Experience: ${userContext.student}`;
+    if (userContext.overall?.trim()) contextSection += `\nOverall: ${userContext.overall}`;
+  }
+
+  return `You are an expert in school inclusion, equity, diversity, and safeguarding, specialising in the RESPOND framework and C.OM.PAs approach from TASIS England.
 
 RESPOND FRAMEWORK - THE 7 STEPS:
-The RESPOND framework is a trauma-informed, relational safeguarding approach developed at TASIS England that bridges the gap between policy and practice.
+R – Recognise: Identify concerns, disclosures, or signs that a child may need support
+E – Engage: Listen actively and build trust. Create a safe space for the child to share
+S – Support: Provide immediate emotional and practical support. Validate their experience
+P – Pause: Take time to think before acting. Avoid reactive decisions
+O – Offer: Present options and next steps. Empower the child where possible
+N – Notify: Follow safeguarding procedures. Report to DSL/appropriate authorities
+D – Document: Record accurately, factually, and contemporaneously
 
-R – Recognise: Identify concerns, disclosures, or signs that a child may need support. Stay alert to changes in behaviour, presentation, or wellbeing.
-
-E – Engage: Listen actively and build trust. Create a safe space for the child to share. The first 60 seconds of engagement shapes whether they'll disclose further. This is relational, not transactional.
-
-S – Support: Provide immediate emotional and practical support. Validate their experience. Ensure they feel heard and believed. Address urgent safety needs.
-
-P – Pause: Take time to think before acting. Avoid reactive decisions. Consider context, consult colleagues if appropriate, and plan your response thoughtfully.
-
-O – Offer: Present options and next steps. Empower the child where possible. Explain what will happen next in age-appropriate language. Maintain agency whilst ensuring safety.
-
-N – Notify: Follow safeguarding procedures. Report to DSL/appropriate authorities as required. Keep relevant people informed on a need-to-know basis. Follow up appropriately.
-
-D – Document: Record accurately, factually, and contemporaneously. Use the child's words. Include what was seen, heard, and done. Store securely and follow data protection requirements.
-
-KEY RESPOND PRINCIPLES:
-- Trauma-informed: Recognises impact of adverse experiences
-- Relational: Students experience safeguarding through relationships, not just processes
-- Contextual: Considers the whole child and their circumstances
-- Culturally sensitive without being culturally inactive: Balance understanding context with taking appropriate action
-- Practice-focused: Bridges the gap between knowing policy and applying it in real situations
-
-RESPOND is the "HOW" that sits between safeguarding policy (the "WHAT") and real-time practice.
+KEY PRINCIPLES: Trauma-informed, Relational, Contextual, Culturally sensitive without being culturally inactive, Practice-focused
 
 C.OM.PAs FRAMEWORK:
-Compassionate: Genuine empathy in every interaction. Understanding each person's context, culture, and lived experience before drawing conclusions. Check in when circumstances change. Listen first, don't defend. Discipline driven by understanding.
-
-Open-minded: Actively challenging our own assumptions and biases. Creating spaces where difference is not tolerated but genuinely valued. Review curriculum for gaps. Question our systems. Make student voice genuine. Adapt when needed.
-
-Principled Actions: Doing the right thing, even when it's difficult. Moving from values held privately to actions taken publicly. Values guide decisions. Challenge discrimination. Policies drive action. Visible in classrooms daily.
+Compassionate: Genuine empathy in every interaction
+Open-minded: Actively challenging our own assumptions and biases
+Principled Actions: Doing the right thing, even when it's difficult
 
 THE GOLDEN THREAD:
 Values (C.OM.PAs) → Policy → Curriculum/Teaching → Culture (Adults) → Student Experience
 
-Inclusion is only "lived" when it reaches the student experience level. Everything above must flow through to actual student experience, or it remains "stated" only.
+Inclusion is only "lived" when it reaches the student experience level.
 
 ---
 
-Now analyse this school's inclusion self-assessment and provide detailed, actionable insights. Use British English spelling throughout (behaviour, recognise, analyse, organisation, centre, etc.).
-
 SCHOOL CONTEXT:
 - Role: ${roleLabels[demographics.yourRole] || 'Not specified'}
-- Student count: ${studentCountLabels[demographics.studentCount] || 'Not specified'}
+- Students: ${studentCountLabels[demographics.studentCount] || 'Not specified'}
 - Setting: ${schoolTypeLabels[demographics.schoolType] || 'Not specified'}
 - Model: ${demographics.schoolModel?.join(', ') || 'Not specified'}
 - Sector: ${demographics.schoolSector || 'Not specified'}
-- Age ranges: ${demographics.ageRanges?.join(', ') || 'Not specified'}
+- Ages: ${demographics.ageRanges?.join(', ') || 'Not specified'}
 - Qualifications: ${demographics.qualifications?.join(', ') || 'Not specified'}
 
 ASSESSMENT SCORES (1=lowest, 5=highest):
 
-**Mission & Values Level:**
+**Mission & Values:**
 1. Mission includes explicit inclusion commitments: ${ratings.mission_explicit}/5
 2. Leadership models inclusive behaviour: ${ratings.leadership_models}/5
 
-**Policy Level:**
+**Policy:**
 3. Policies contain specific, actionable commitments: ${ratings.policy_specific}/5
-4. Policies reviewed annually for inclusivity: ${ratings.policy_reviewed}/5
-5. Policies are accessible to staff: ${ratings.policy_accessible}/5
+4. Policies reviewed annually: ${ratings.policy_reviewed}/5
+5. Policies accessible to staff: ${ratings.policy_accessible}/5
 
-**Curriculum & Teaching Level:**
+**Curriculum & Teaching:**
 6. Curriculum reflects diverse perspectives: ${ratings.curriculum_diverse}/5
 7. Inclusion embedded across subjects: ${ratings.curriculum_embedded}/5
 8. Teachers receive regular training: ${ratings.teacher_training}/5
 
-**Culture & Relationships Level:**
+**Culture & Relationships:**
 9. Staff challenge bias/exclusionary language: ${ratings.staff_challenge}/5
 10. Students from minoritised backgrounds feel valued: ${ratings.students_valued}/5
-11. Families trust our response process: ${ratings.trust_response}/5
+11. Families trust response process: ${ratings.trust_response}/5
 
-**Student Experience Level:**
+**Student Experience:**
 12. Students can name trusted adults: ${ratings.student_trust}/5
 13. School systematically collects student voice: ${ratings.student_voice}/5
 14. Students say school genuinely values everyone: ${ratings.student_perception}/5
+${contextSection}
 
 TASK:
-Provide a comprehensive analysis structured with HTML formatting as follows. CRITICAL: Use British English spelling throughout (behaviour, recognise, organisation, centre, practise as verb/practice as noun, whilst, amongst, etc.):
+Provide a comprehensive analysis structured with HTML formatting. CRITICAL: Use British English spelling throughout (behaviour, recognise, analyse, organisation, centre, practise as verb/practice as noun, whilst, amongst, etc.):
 
 <h2>🎯 Overall Assessment</h2>
-<p>Brief summary of where this school is on the stated→lived inclusion journey. Map their scores against the Golden Thread (Values → Policy → Curriculum → Culture → Student Experience). Identify 2-3 key strengths to build on and the most critical gaps. Reference whether the gap is at Values, Policy, Teaching, Culture, or Student Experience level.</p>
+<p>Brief summary of where this school is on the stated→lived inclusion journey. Map their scores against the Golden Thread. Identify 2-3 key strengths to build on and the most critical gaps.</p>
 
 <h2>🔍 Detailed Gap Analysis</h2>
 
 <h3>Mission & Values Level</h3>
-<p>What scores ${ratings.mission_explicit} and ${ratings.leadership_models} reveal about leadership commitment. Are C.OM.PAs principles visible at the top? Specific implications for this ${demographics.schoolType || 'school'} context. Why these scores matter for the whole Golden Thread flow.</p>
+<p>What scores ${ratings.mission_explicit} and ${ratings.leadership_models} reveal about leadership commitment. Are C.OM.PAs principles visible at the top?</p>
 
 <h3>Policy Level</h3>
-<p>What scores ${ratings.policy_specific}, ${ratings.policy_reviewed}, and ${ratings.policy_accessible} indicate about policy effectiveness. How this impacts daily practice in a school with ${demographics.studentCount || 'this size'}. Do policies enable staff to apply RESPOND principles, or just state compliance requirements?</p>
+<p>What scores ${ratings.policy_specific}, ${ratings.policy_reviewed}, and ${ratings.policy_accessible} indicate. Do policies enable staff to apply RESPOND principles?</p>
 
 <h3>Curriculum & Teaching Level</h3>
-<p>What scores ${ratings.curriculum_diverse}, ${ratings.curriculum_embedded}, and ${ratings.teacher_training} show about lived inclusion. Context-specific challenges for ${demographics.qualifications?.join(' and ') || 'this curriculum'}. Are staff equipped and confident to apply C.OM.PAs and RESPOND in real situations?</p>
+<p>What scores ${ratings.curriculum_diverse}, ${ratings.curriculum_embedded}, and ${ratings.teacher_training} show. Are staff equipped to apply C.OM.PAs and RESPOND?</p>
 
 <h3>Culture & Relationships Level</h3>
-<p>What scores ${ratings.staff_challenge}, ${ratings.students_valued}, and ${ratings.trust_response} reveal about adult culture and student trust. This is where stated values either become lived practice or remain rhetoric.</p>
+<p>What scores ${ratings.staff_challenge}, ${ratings.students_valued}, and ${ratings.trust_response} reveal. Where stated values become lived practice or remain rhetoric.</p>
 
 <h3>Student Experience Level (The Ultimate Measure)</h3>
-<p>What scores ${ratings.student_trust}, ${ratings.student_voice}, and ${ratings.student_perception} reveal - this is where the Golden Thread either succeeds or breaks. Implications for ${demographics.ageRanges?.join(', ') || 'students'}. Can students name trusted adults (RESPOND's Engage principle)? Do they experience genuine inclusion or just stated values?</p>
+<p>What scores ${ratings.student_trust}, ${ratings.student_voice}, and ${ratings.student_perception} reveal. Where the Golden Thread succeeds or breaks.</p>
 
 <h2>🚨 Priority Areas</h2>
 <p>Identify 3 priority areas based on where the Golden Thread breaks down:</p>
@@ -187,12 +252,16 @@ Provide a comprehensive analysis structured with HTML formatting as follows. CRI
 
 <div class="action-plan">
 <h3><span class="priority-badge priority-medium">MEDIUM PRIORITY</span> [Area Name]</h3>
-<p>[Similar structure]</p>
+<p><strong>Why this matters:</strong> [Impact]</p>
+<p><strong>Context:</strong> [Tailored]</p>
+<p><strong>Framework link:</strong> [RESPOND/C.OM.PAs]</p>
 </div>
 
 <div class="action-plan">
 <h3><span class="priority-badge priority-low">LOW PRIORITY</span> [Area Name]</h3>
-<p>[Similar structure]</p>
+<p><strong>Why this matters:</strong> [Impact]</p>
+<p><strong>Context:</strong> [Tailored]</p>
+<p><strong>Framework link:</strong> [RESPOND/C.OM.PAs]</p>
 </div>
 
 <h2>📋 30-Day Action Plan</h2>
@@ -209,7 +278,27 @@ Provide a comprehensive analysis structured with HTML formatting as follows. CRI
 <p><strong>Quick win tip:</strong> [One thing they can do this week that embodies C.OM.PAs]</p>
 </div>
 
-[Repeat for Actions 2 and 3, each referencing RESPOND or C.OM.PAs]
+<div class="action-plan">
+<h3>Action 2: [Specific action for MEDIUM priority]</h3>
+<p><strong>RESPOND/C.OM.PAs principle:</strong> [Which principle]</p>
+<p><strong>Who:</strong> [Roles]</p>
+<p><strong>What:</strong> [Steps]</p>
+<p><strong>Success criteria:</strong> [How to measure]</p>
+<p><strong>Time:</strong> [Estimate]</p>
+<p><strong>Resources:</strong> [Needed]</p>
+<p><strong>Quick win:</strong> [This week]</p>
+</div>
+
+<div class="action-plan">
+<h3>Action 3: [Specific action for LOW priority]</h3>
+<p><strong>RESPOND/C.OM.PAs principle:</strong> [Which principle]</p>
+<p><strong>Who:</strong> [Roles]</p>
+<p><strong>What:</strong> [Steps]</p>
+<p><strong>Success criteria:</strong> [How to measure]</p>
+<p><strong>Time:</strong> [Estimate]</p>
+<p><strong>Resources:</strong> [Needed]</p>
+<p><strong>Quick win:</strong> [This week]</p>
+</div>
 
 <h2>💡 Context-Specific Insights</h2>
 <div class="insight-box">
@@ -219,9 +308,6 @@ Provide a comprehensive analysis structured with HTML formatting as follows. CRI
 <li>[Specific insight 1 - how their context affects Golden Thread flow]</li>
 <li>[Specific insight 2 - RESPOND/C.OM.PAs application in their setting]</li>
 <li>[Specific insight 3 - unique opportunities or challenges]</li>
-<li>[If boarding school: emphasise RESPOND's Engage and student trust networks]</li>
-<li>[If IB school: leverage TOK, CAS, ATL frameworks for inclusion]</li>
-<li>[If small school: advantage of relational approach, challenge of resource constraints]</li>
 </ul>
 </div>
 
