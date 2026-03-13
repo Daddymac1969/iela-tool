@@ -22,7 +22,7 @@ exports.handler = async (event, context) => {
     const prompt = buildPrompt(demographics, ratings, userContext);
 
     const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-4-6",
       max_tokens: 6000, // Increased from 4000
       messages: [{ role: "user", content: prompt }],
       timeout: 120000 // 120 second timeout

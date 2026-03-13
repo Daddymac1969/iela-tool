@@ -4,5 +4,8 @@
   "description": "AI-Powered Inclusion Assessment for IELA Conference",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   }
 }

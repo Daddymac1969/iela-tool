@@ -1,9 +1,12 @@
 [build]
   functions = "netlify/functions"
 
+[build.environment]
+  NODE_VERSION = "20"
+
 [functions]
   node_bundler = "esbuild"
-  
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
@@ -11,4 +14,4 @@
 
 [functions."analyze"]
   included_files = ["**/*.js"]
-  timeout = 60
+  timeout = 26
