@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELA AI-Powered Inclusion Assessment</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #073B4C 0%, #118AB2 100%);
+            color: white;
+            padding: 30px;
+            margin: -40px -40px 40px -40px;
+            border-left: 5px solid #FF6B35;
+        }
+        h1 { font-size: 2em; margin-bottom: 10px; }
+        h2 { color: #073B4C; margin: 30px 0 15px 0; padding-bottom: 10px; border-bottom: 3px solid #FF6B35; }
+        h3 { color: #2c5282; margin: 20px 0 10px 0; }
+        .intro {
+            background: #e8f4f8;
+            padding: 20px;
+            border-left: 4px solid #06D6A0;
+            margin-bottom: 30px;
+            border-radius: 5px;
+        }
+        .demographics-section {
+            background: #fff5f0;
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 10px;
+            border-left: 5px solid #FF6B35;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 15px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            font-weight: 600;
+            color: #073B4C;
+            margin-bottom: 8px;
+        }
+        .form-group input,
+        .form-group select {
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #FF6B35;
+        }
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        .assessment-section {
+            background: #f8f9fa;
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 10px;
+            border-left: 5px solid #FF6B35;
+        }
+        .question {
+            background: white;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+        }
+        .question-text {
+            font-weight: 600;
+            color: #073B4C;
+            margin-bottom: 15px;
+        }
+        .rating-scale {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .rating-option {
+            flex: 1;
+            text-align: center;
+            padding: 15px 5px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.85em;
+            background: white;
+        }
+        .rating-option:hover {
+            border-color: #FF6B35;
+            background: #fff5f0;
+            transform: translateY(-2px);
+        }
+        .rating-option.selected {
+            border-color: #FF6B35;
+            background: linear-gradient(135deg, #FF6B35, #F7931E);
+            color: white;
+            transform: scale(1.05);
+        }
+        .rating-number {
+            display: block;
+            font-size: 1.5em;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .btn {
+            background: linear-gradient(45deg, #FF6B35, #F7931E);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1em;
+            margin: 10px 5px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .analysis-section {
+            background: white;
+            padding: 30px;
+            margin: 30px 0;
+            border-radius: 10px;
+            border: 3px solid #06D6A0;
+            display: none;
+        }
+        .analysis-section.show {
+            display: block;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #FF6B35;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .save-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #06D6A0;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+        .save-status.show {
+            opacity: 1;
+        }
+        .progress-indicator {
+            background: #e9ecef;
+            height: 8px;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        .progress-bar {
+            background: linear-gradient(45deg, #FF6B35, #F7931E);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .priority-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+        .priority-high {
+            background: #FF6B35;
+            color: white;
+        }
+        .priority-medium {
+            background: #FFD23F;
+            color: #333;
+        }
+        .priority-low {
+            background: #06D6A0;
+            color: white;
+        }
+        .insight-box {
+            background: linear-gradient(135deg, #FF6B35, #F7931E);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .action-plan {
+            background: #f8f9fa;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 10px;
+            border-left: 5px solid #06D6A0;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #e9ecef;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+        }
+        @media print {
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; }
+            .btn, .save-status { display: none; }
+        }
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            .rating-option {
+                font-size: 0.75em;
+                padding: 10px 3px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="save-status" id="saveStatus">✓ Saved</div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🎯 AI-Powered Inclusion Self-Assessment</h1>
+            <p>From IELA Conference 2026: Inclusion as the Golden Thread</p>
+            <p style="margin-top: 10px; font-size: 0.9em;">Get personalised analysis and action plans powered by Claude AI</p>
+        </div>
+
+        <div class="intro">
+            <h3>How This Works</h3>
+            <p>Complete the assessment and receive AI-generated insights tailored to your school's context. Your responses are analysed to identify gaps, prioritise actions, and create a concrete 30-day plan.</p>
+            <p style="margin-top: 10px;"><strong>⏱️ Time required:</strong> 25-35 minutes<br>
+            <strong>🤖 AI Analysis:</strong> Personalised feedback and action plan<br>
+            <strong>💾 Auto-save:</strong> Your progress is saved as you work</p>
+        </div>
+
+        <div class="progress-indicator">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <h2>📊 School Context</h2>
+        <p>Help us tailor the analysis to your school's unique situation.</p>
+
+        <div class="demographics-section">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="schoolName">School Name</label>
+                    <input type="text" id="schoolName" placeholder="Optional" oninput="saveData()">
+                </div>
+
+                <div class="form-group">
+                    <label for="yourRole">Your Role</label>
+                    <select id="yourRole" onchange="saveData()">
+                        <option value="">Select your role</option>
+                        <option value="head">Head of School / Principal</option>
+                        <option value="slt">Senior Leadership Team</option>
+                        <option value="inclusion_lead">Inclusion / DEI Lead</option>
+                        <option value="safeguarding_lead">Safeguarding Lead / DSL</option>
+                        <option value="middle_leader">Middle Leader / Head of Department</option>
+                        <option value="teacher">Classroom Teacher</option>
+                        <option value="pastoral">Pastoral / Wellbeing Lead</option>
+                        <option value="governor">Governor / Trustee</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="studentCount">Number of Students</label>
+                    <select id="studentCount" onchange="saveData()">
+                        <option value="">Select range</option>
+                        <option value="under_100">Under 100</option>
+                        <option value="100_300">100-300</option>
+                        <option value="300_500">300-500</option>
+                        <option value="500_800">500-800</option>
+                        <option value="800_1200">800-1,200</option>
+                        <option value="over_1200">Over 1,200</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="schoolType">School Setting</label>
+                    <select id="schoolType" onchange="saveData()">
+                        <option value="">Select setting</option>
+                        <option value="inner_city">Inner City / Urban</option>
+                        <option value="suburban">Suburban</option>
+                        <option value="rural">Rural</option>
+                        <option value="international">International</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="schoolSector">School Sector</label>
+                    <select id="schoolSector" onchange="saveData()">
+                        <option value="">Select sector</option>
+                        <option value="independent">Independent / Private</option>
+                        <option value="state">State / Public</option>
+                        <option value="academy">Academy / Free School</option>
+                        <option value="international_school">International School</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 20px;">
+                <label>School Model (select all that apply)</label>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="model_co_ed" value="co_ed" onchange="saveData()">
+                        <label for="model_co_ed">Co-educational</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="model_single_sex_boys" value="single_sex_boys" onchange="saveData()">
+                        <label for="model_single_sex_boys">Single-sex (Boys)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="model_single_sex_girls" value="single_sex_girls" onchange="saveData()">
+                        <label for="model_single_sex_girls">Single-sex (Girls)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="model_day" value="day" onchange="saveData()">
+                        <label for="model_day">Day School</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="model_boarding" value="boarding" onchange="saveData()">
+                        <label for="model_boarding">Boarding</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 20px;">
+                <label>Age Ranges Offered (select all that apply)</label>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="age_early_years" value="early_years" onchange="saveData()">
+                        <label for="age_early_years">Early Years (2-5)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="age_primary" value="primary" onchange="saveData()">
+                        <label for="age_primary">Primary (5-11)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="age_middle" value="middle" onchange="saveData()">
+                        <label for="age_middle">Middle School (11-14)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="age_secondary" value="secondary" onchange="saveData()">
+                        <label for="age_secondary">Secondary (11-16/18)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="age_sixth_form" value="sixth_form" onchange="saveData()">
+                        <label for="age_sixth_form">Sixth Form / Senior (16-18)</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 20px;">
+                <label>Qualifications Offered (select all that apply)</label>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="qual_gcse" value="gcse" onchange="saveData()">
+                        <label for="qual_gcse">GCSE / iGCSE</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="qual_alevel" value="a_level" onchange="saveData()">
+                        <label for="qual_alevel">A-Level</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="qual_ib" value="ib" onchange="saveData()">
+                        <label for="qual_ib">IB Diploma</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="qual_ap" value="ap" onchange="saveData()">
+                        <label for="qual_ap">AP (Advanced Placement)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="qual_btec" value="btec" onchange="saveData()">
+                        <label for="qual_btec">BTEC / Vocational</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h2>🎯 Golden Thread Assessment</h2>
+        <p>Click the number that best represents your school. Your selections save automatically.</p>
+
+        <div class="assessment-section">
+            <h3>1. Mission & Values Level</h3>
+            
+            <div class="question">
+                <div class="question-text">Our school's mission statement includes explicit commitments to inclusion, equity, or belonging</div>
+                <div class="rating-scale" data-question="mission_explicit">
+                    <div class="rating-option" data-value="1" onclick="selectRating('mission_explicit', 1, this)">
+                        <span class="rating-number">1</span>
+                        <span>Not present</span>
+                    </div>
+                    <div class="rating-option" data-value="2" onclick="selectRating('mission_explicit', 2, this)">
+                        <span class="rating-number">2</span>
+                        <span>Implied not explicit</span>
+                    </div>
+                    <div class="rating-option" data-value="3" onclick="selectRating('mission_explicit', 3, this)">
+                        <span class="rating-number">3</span>
+                        <span>Generic terms</span>
+                    </div>
+                    <div class="rating-option" data-value="4" onclick="selectRating('mission_explicit', 4, this)">
+                        <span class="rating-number">4</span>
+                        <span>Clear & specific</span>
+                    </div>
+                    <div class="rating-option" data-value="5" onclick="selectRating('mission_explicit', 5, this)">
+                        <span class="rating-number">5</span>
+                        <span>Central to identity</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <div class="question-text">Senior leadership publicly models inclusive behaviour (not just states commitment)</div>
+                <div class="rating-scale" data-question="leadership_models">
+                    <div class="rating-option" data-value="1" onclick="selectRating('leadership_models', 1, this)">
+                        <span class="rating-number">1</span>
+                        <span>Rarely visible</span>
+                    </div>
+                    <div class="rating-option" data-value="2" onclick="selectRating('leadership_models', 2, this)">
+                        <span class="rating-number">2</span>
+                        <span>Occasional</span>
+                    </div>
+                    <div class="rating-option" data-value="3" onclick="selectRating('leadership_models', 3, this)">
+                        <span class="rating-number">3</span>
+                        <span>Sometimes</span>
+                    </div>
+                    <div class="rating-option" data-value="4" onclick="selectRating('leadership_models', 4, this)">
+                        <span class="rating-number">4</span>
+                        <span>Regularly</span>
+                    </div>
+                    <div class="rating-option" data-value="5" onclick="selectRating('leadership_models', 5, this)">
+                        <span class="rating-number">5</span>
+                        <span>Consistently exemplary</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="assessment-section">
+            <h3>2. Policy Level</h3>
+            
+            <div class="question">
+                <div class="question-text">Our policies (behaviour, anti-bullying, equalities) contain specific, actionable inclusion commitments</div>
+                <div class="rating-scale" data-question="policy_specific">
+                    <div class="rating-option" data-value="1" onclick="selectRating('policy_specific', 1, this)">
+                        <span class="rating-number">1</span>
+                        <span>Generic only</span>
+                    </div>
+                    <div class="rating-option" data-value="2" onclick="selectRating('policy_specific', 2, this)">
+                        <span class="rating-number">2</span>
+                        <span>Some specifics</span>
+                    </div>
+                    <div class="rating-option" data-value="3" onclick="selectRating('policy_specific', 3, this)">
+                        <span class="rating-number">3</span>
+                        <span>Moderately detailed</span>
+                    </div>
+                    <div class="rating-option" data-value="4" onclick="selectRating('policy_specific', 4, this)">
+                        <span class="rating-number">4</span>
+                        <span>Very specific</span>
+                    </div>
+                    <div class="rating-option" data-value="5" onclick="selectRating('policy_specific', 5, this)">
+                        <span class="rating-number">5</span>
+                        <span>Actionable & measurable</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <div class="question-text">Policies are reviewed annually for inclusivity of language and approach</div>
+                <div class="rating-scale" data-question="policy_reviewed">
+                    <div class="rating-option" data-value="1" onclick="selectRating('policy_reviewed', 1, this)">
+                        <span class="rating-number">1</span>
+                        <span>Never</span>
+                    </div>
+                    <div class="rating-option" data-value="2" onclick="selectRating('policy_reviewed', 2, this)">
+                        <span class="rating-number">2</span>
+                        <span>Ad hoc</span>
+                    </div>
+                    <div class="rating-option" data-value="3" onclick="selectRating('policy_reviewed', 3, this)">
+                        <span class="rating-number">3</span>
+                        <span>Sometimes</span>
+                    </div>
+                    <div class="rating-option" data-value="4" onclick="selectRating('policy_reviewed', 4, this)">
+                        <span class="rating-number">4</span>
+                        <span>Annually</span>
+                    </div>
+                    <div class="rating-option" data-value="5" onclick="selectRating('policy_reviewed', 5, this)">
+                        <span class="rating-number">5</span>
+                        <span>Systematically reviewed</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <div class="question-text">Staff can easily find and understand our inclusion policies when they need them</div>
+                <div class="rating-scale" data-question="policy_accessible">
+                    <div class="rating-option" data-value="1" onclick="selectRating('policy_accessible', 1, this)">
+                        <span class="rating-number">1</span>
+                        <span>Very difficult</span>
+                    </div>
+                    <div class="rating-option" data-value="2" onclick="selectRating('policy_accessible', 2, this)">
+                        <span class="rating-number">2</span>
+                        <span>Challenging</span>
+                    </div>
+                    <div class="rating-option" data-value="3" onclick="selectRating('policy_accessible', 3, this)">
+                        <span class="rating-number">3</span>
+                        <span>Possible but unclear</span>
+                    </div>
+                    <div class="rating-option" data-value="4" onclick="selectRating('policy_accessible', 4, this)">
+                        <span class="rating-number">4</span>
+                        <span>Accessible</span>
+                    </div>
+                    <div class="rating-option" data-value="5" onclick="selectRating('policy_accessible', 5, this)">
+                        <span class="rating-number">5</span>
+                        <span>Easy & clear</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="assessment-section">
+            <h3>3. Curriculum & Teaching Level</h3>
+            
+            <div class="question">
+                <div class="question-text">Our curriculum reflects diverse perspectives, identities, and contributions</div>
+                <div class="rating-scale" data-question="curriculum_diverse">
+                    <div class="rating-option" data-value="1" onclick="selectRating('curriculum_diverse', 1, this)">
+                        <span class="rating-number">1</span>
+                        <span>Very limited</span>
+                    </div>
+                    <div class="rating-option" data-value="2" onclick="selectRating('curriculum_diverse', 2, this)">
+                        <span class="rating-number">2</span>
+                        <span>Token representation</span>
+                    </div>
+                    <div class="rating-option" data-value="3" onclick="selectRating('curriculum_diverse', 3, this)">
+                        <span class="rating-number">3</span>
+                        <span>Some diversity</span>
+                    </div>
+                    <div class="rating-option" data-value="4" onclick="selectRating('curriculum_diverse', 4, this)">
+                        <span class="rating-number">4</span>
+                        <span>Well represented</span>
+                    </div>
+                    <div class="rating-option" data-value="5" onclick="selectRating('curriculum_diverse', 5, this)">
+                        <span class="rating-number">5</span>
+                        <span>Comprehensively diverse</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <div class="question-text">Inclusion is embedded across subjects, not just PSHE/advisory</div>
+                <div class="rating-scale" data-question="curriculum_embedded">
+                    <div class="rating-option" data-value="1" onclick="selectRating('curriculum_embedded', 1, this)">
+                        <span class="rating-number">1</span>
+                        <span>PSHE only</span>
+                    </div>
+                    <div class="rating-option" data-value="2" onclick="selectRating('curriculum_embedded', 2, this)">
+                        <span class="rating-number">2</span>
+                        <span>Few subjects</span>
+                    </div>
+                    <div class="rating-option" data-value="3" onclick="selectRating('curriculum_embedded', 3, this)">
+                        <span class="rating-number">3</span>
+                        <span>Several subjects</span>
+                    </div>
+                    <div class="rating-option" data-value="4" onclick="selectRating('curriculum_embedded', 4, this)">
+                        <span class="rating-number">4</span>
+                        <span>Most subjects</span>
+                    </div>
+                    <div class="rating-option" data-value="5" onclick="selectRating('curriculum_embedded', 5, this)">
+                        <span class="rating-number">5</span>
+                        <span>All subjects</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <div class="question-text">Teachers receive regular training on inclusive pedagogy and culturally responsive teaching</div>
+                <div class="rating-scale" data-question="teacher_training">
+                    <div class="rating-option" data-value="1" onclick="selectRating('teacher_training', 1, this)">
+                        <span class="rating-number">1</span>
+                        <span>Never</span>
+                    </div>
+                    <div class="rating-option" data-value="2" onclick="selectRating('teacher_training', 2, this)">
+                        <span class="rating-number">2</span>
+                        <span>Once in induction</span>
+                    </div>
+                    <div class="rating-option" data-value="3" onclick="selectRating('teacher_training', 3, this)">
+                        <span class="rating-number">3</span>
+                        <span>Occasionally</span>
+                    </div>
+                    <div class="rating-option" data-value="4" onclick="selectRating('teacher_training', 4, this)">
+                        <span class="rating-number">4</span>
+                        <span>Annually</span>
+                    </div>
+                    <div class="rating-option" data-value="5" onclick="selectRating('teacher_training', 5, this)">
+                        <span class="rating-number">5</span>
+                        <span>Ongoing CPD cycle</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="assessment-section">
+            <h3>4. Culture & Relationships Level</h3>
+            
+            <div class="question">
+                <div class="question-text">Staff confidently challenge bias, microaggressions, or exclusionary language when they hear it</div>
+                <div class="rating-scale" data-question="staff_challenge">
+                    <div class="rating-option" data-value="1" onclick="selectRating('staff_challenge', 1, this)">
+                        <span class="rating-number">1</span>
+                        <span>Almost never</span>
+                    </div>
+                    <div class="rating-option" data-value="2" onclick="selectRating('staff_challenge', 2, this)">
+                        <span class="rating-number">2</span>
+                        <span>Rarely</span>
+                    </div>
+                    <div class="rating-option" data-value="3" onclick="selectRating('staff_challenge', 3, this)">
+                        <span class="rating-number">3</span>
+                        <span>Sometimes</span>
+                    </div>
+                    <div class="rating-option" data-value="4" onclick="selectRating('staff_challenge', 4, this)">
+                        <span class="rating-number">4</span>
+                        <span>Usually</span>
+                    </div>
+                    <div class="rating-option" data-value="5" onclick="selectRating('staff_challenge', 5, this)">
+                        <span class="rating-number">5</span>
+                        <span>Consistently</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <div class="question-text">Students from minoritised backgrounds report feeling valued and heard</div>
+                <div class="rating-scale" data-question="students_valued">
+                    <div class="rating-option" data-value="1" onclick="selectRating('students_valued', 1, this)">
+                        <span class="rating-number">1</span>
+                        <span>We don't know</span>
+                    </div>
+                    <div class="rating-option" data-value="2" onclick="selectRating('students_valued', 2, this)">
+                        <span class="rating-number">2</span>
+                        <span>Significant concerns</span>
+                    </div>
+                    <div class="rating-option" data-value="3" onclick="selectRating('students_valued', 3, this)">
+                        <span class="rating-number">3</span>
+                        <span>Mixed feedback</span>
+                    </div>
+                    <div class="rating-option" data-value="4" onclick="selectRating('students_valued', 4, this)">
+                        <span class="rating-number">4</span>
+                        <span>Mostly positive</span>
+                    </div>
+                    <div class="rating-option" data-value="5" onclick="selectRating('students_valued', 5, this)">
+                        <span class="rating-number">5</span>
+                        <span>Consistently positive</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <div class="question-text">When discrimination incidents occur, students and families trust our response process</div>
+                <div class="rating-scale" data-question="trust_response">
+                    <div class="rating-option" data-value="1" onclick="selectRating('trust_response', 1, this)">
+                        <span class="rating-number">1</span>
+                        <span>Low trust</span>
+                    </div>
+                    <div class="rating-option" data-value="2" onclick="selectRating('trust_response', 2, this)">
+                        <span class="rating-number">2</span>
+                        <span>Some scepticism</span>
+                    </div>
+                    <div class="rating-option" data-value="3" onclick="selectRating('trust_response', 3, this)">
+                        <span class="rating-number">3</span>
+                        <span>Moderate trust</span>
+                    </div>
+                    <div class="rating-option" data-value="4" onclick="selectRating('trust_response', 4, this)">
+                        <span class="rating-number">4</span>
+                        <span>Strong trust</span>
+                    </div>
+                    <div class="rating-option" data-value="5" onclick="selectRating('trust_response', 5, this)">
+                        <span class="rating-number">5</span>
+                        <span>Very high trust</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="assessment-section">
+            <h3>5. Student Experience Level (The Ultimate Measure)</h3>
+            
+            <div class="question">
+                <div class="question-text">Students can name specific adults they trust to discuss inclusion or discrimination concerns</div>
+                <div class="rating-scale" data-question="student_trust">
+                    <div class="rating-option" data-value="1" onclick="selectRating('student_trust', 1, this)">
+                        <span class="rating-number">1</span>
+                        <span>Very few can</span>
+                    </div>
+                    <div class="rating-option" data-value="2" onclick="selectRating('student_trust', 2, this)">
+                        <span class="rating-number">2</span>
+                        <span>Some can</span>
+                    </div>
+                    <div class="rating-option" data-value="3" onclick="selectRating('student_trust', 3, this)">
+                        <span class="rating-number">3</span>
+                        <span>About half</span>
+                    </div>
+                    <div class="rating-option" data-value="4" onclick="selectRating('student_trust', 4, this)">
+                        <span class="rating-number">4</span>
+                        <span>Most can</span>
+                    </div>
+                    <div class="rating-option" data-value="5" onclick="selectRating('student_trust', 5, this)">
+                        <span class="rating-number">5</span>
+                        <span>Almost all can</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <div class="question-text">We systematically collect and act on student voice data about inclusion and belonging</div>
+                <div class="rating-scale" data-question="student_voice">
+                    <div class="rating-option" data-value="1" onclick="selectRating('student_voice', 1, this)">
+                        <span class="rating-number">1</span>
+                        <span>Never</span>
+                    </div>
+                    <div class="rating-option" data-value="2" onclick="selectRating('student_voice', 2, this)">
+                        <span class="rating-number">2</span>
+                        <span>Ad hoc only</span>
+                    </div>
+                    <div class="rating-option" data-value="3" onclick="selectRating('student_voice', 3, this)">
+                        <span class="rating-number">3</span>
+                        <span>Collect but don't act</span>
+                    </div>
+                    <div class="rating-option" data-value="4" onclick="selectRating('student_voice', 4, this)">
+                        <span class="rating-number">4</span>
+                        <span>Collect & act sometimes</span>
+                    </div>
+                    <div class="rating-option" data-value="5" onclick="selectRating('student_voice', 5, this)">
+                        <span class="rating-number">5</span>
+                        <span>Regular cycle with action</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <div class="question-text">If asked "Does your school genuinely value everyone?", students would say yes without hesitation</div>
+                <div class="rating-scale" data-question="student_perception">
+                    <div class="rating-option" data-value="1" onclick="selectRating('student_perception', 1, this)">
+                        <span class="rating-number">1</span>
+                        <span>Unlikely</span>
+                    </div>
+                    <div class="rating-option" data-value="2" onclick="selectRating('student_perception', 2, this)">
+                        <span class="rating-number">2</span>
+                        <span>Some would</span>
+                    </div>
+                    <div class="rating-option" data-value="3" onclick="selectRating('student_perception', 3, this)">
+                        <span class="rating-number">3</span>
+                        <span>Mixed responses</span>
+                    </div>
+                    <div class="rating-option" data-value="4" onclick="selectRating('student_perception', 4, this)">
+                        <span class="rating-number">4</span>
+                        <span>Most would</span>
+                    </div>
+                    <div class="rating-option" data-value="5" onclick="selectRating('student_perception', 5, this)">
+                        <span class="rating-number">5</span>
+                        <span>Almost all would</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin: 40px 0;">
+            <button class="btn" id="analyzeBtn" onclick="generateAnalysis()" disabled>
+                🤖 Generate AI Analysis & Action Plan
+            </button>
+            <p style="margin-top: 15px; color: #666; font-size: 0.9em;" id="readyMessage">Complete all questions to unlock AI analysis</p>
+        </div>
+
+        <div class="analysis-section" id="analysisSection">
+            <div class="loading" id="loadingIndicator">
+                <div class="loading-spinner"></div>
+                <p style="color: #666; margin-top: 20px;">Analysing your responses and generating personalised recommendations...</p>
+            </div>
+            <div id="analysisContent"></div>
+        </div>
+
+        <div class="footer">
+            <p><strong>IELA Conference 2026 • Inclusion as the Golden Thread</strong></p>
+            <p>Darren Singh-MacPherson & Colin Williams • TASIS England</p>
+            <p style="margin-top: 10px;">dsinghmacpherson@tasisengland.org • cwilliams@tasisengland.org</p>
+        </div>
+    </div>
+
+    <script>
+        let assessmentData = {
+            demographics: {},
+            ratings: {}
+        };
+
+        window.onload = function() {
+            loadData();
+            updateProgress();
+        };
+
+        function selectRating(questionId, value, element) {
+            const parent = element.parentElement;
+            parent.querySelectorAll('.rating-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            assessmentData.ratings[questionId] = value;
+            saveData();
+            updateProgress();
+            checkCompletion();
+        }
+
+        function saveData() {
+            assessmentData.demographics = {
+                schoolName: document.getElementById('schoolName').value,
+                yourRole: document.getElementById('yourRole').value,
+                studentCount: document.getElementById('studentCount').value,
+                schoolType: document.getElementById('schoolType').value,
+                schoolModel: Array.from(document.querySelectorAll('input[type="checkbox"][id^="model_"]:checked')).map(el => el.value),
+                schoolSector: document.getElementById('schoolSector').value,
+                ageRanges: Array.from(document.querySelectorAll('input[type="checkbox"][id^="age_"]:checked')).map(el => el.value),
+                qualifications: Array.from(document.querySelectorAll('input[type="checkbox"][id^="qual_"]:checked')).map(el => el.value)
+            };
+            
+            localStorage.setItem('iela_ai_assessment', JSON.stringify(assessmentData));
+            showSaveStatus();
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('iela_ai_assessment');
+            if (saved) {
+                assessmentData = JSON.parse(saved);
+                
+                if (assessmentData.demographics) {
+                    const demo = assessmentData.demographics;
+                    if (demo.schoolName) document.getElementById('schoolName').value = demo.schoolName;
+                    if (demo.yourRole) document.getElementById('yourRole').value = demo.yourRole;
+                    if (demo.studentCount) document.getElementById('studentCount').value = demo.studentCount;
+                    if (demo.schoolType) document.getElementById('schoolType').value = demo.schoolType;
+                    if (demo.schoolSector) document.getElementById('schoolSector').value = demo.schoolSector;
+                    
+                    if (demo.schoolModel) {
+                        demo.schoolModel.forEach(val => {
+                            const checkbox = document.querySelector(`input[type="checkbox"][id="model_${val}"]`);
+                            if (checkbox) checkbox.checked = true;
+                        });
+                    }
+                    
+                    if (demo.ageRanges) {
+                        demo.ageRanges.forEach(val => {
+                            const checkbox = document.querySelector(`input[type="checkbox"][value="${val}"]`);
+                            if (checkbox) checkbox.checked = true;
+                        });
+                    }
+                    
+                    if (demo.qualifications) {
+                        demo.qualifications.forEach(val => {
+                            const checkbox = document.querySelector(`input[type="checkbox"][value="${val}"]`);
+                            if (checkbox) checkbox.checked = true;
+                        });
+                    }
+                }
+                
+                if (assessmentData.ratings) {
+                    Object.keys(assessmentData.ratings).forEach(questionId => {
+                        const value = assessmentData.ratings[questionId];
+                        const scale = document.querySelector(`[data-question="${questionId}"]`);
+                        if (scale) {
+                            const option = scale.querySelector(`[data-value="${value}"]`);
+                            if (option) option.classList.add('selected');
+                        }
+                    });
+                }
+            }
+        }
+
+        function showSaveStatus() {
+            const status = document.getElementById('saveStatus');
+            status.classList.add('show');
+            setTimeout(() => {
+                status.classList.remove('show');
+            }, 2000);
+        }
+
+        function updateProgress() {
+            const totalQuestions = 14;
+            const answered = Object.keys(assessmentData.ratings || {}).length;
+            const percentage = (answered / totalQuestions) * 100;
+            document.getElementById('progressBar').style.width = percentage + '%';
+        }
+
+        function checkCompletion() {
+            const totalQuestions = 14;
+            const answered = Object.keys(assessmentData.ratings || {}).length;
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const readyMessage = document.getElementById('readyMessage');
+            
+            if (answered === totalQuestions) {
+                analyzeBtn.disabled = false;
+                readyMessage.textContent = '✓ Ready! Click to generate your personalised analysis';
+                readyMessage.style.color = '#06D6A0';
+            } else {
+                analyzeBtn.disabled = true;
+                readyMessage.textContent = `Complete all questions to unlock AI analysis (${answered}/${totalQuestions} answered)`;
+                readyMessage.style.color = '#666';
+            }
+        }
+
+        async function generateAnalysis() {
+            const analysisSection = document.getElementById('analysisSection');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const analysisContent = document.getElementById('analysisContent');
+            
+            analysisSection.classList.add('show');
+            loadingIndicator.style.display = 'block';
+            analysisContent.innerHTML = '';
+            analysisSection.scrollIntoView({ behavior: 'smooth' });
+            
+            try {
+                const response = await fetch('/.netlify/functions/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(assessmentData)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                loadingIndicator.style.display = 'none';
+                analysisContent.innerHTML = data.analysis;
+                
+            } catch (error) {
+                loadingIndicator.style.display = 'none';
+                analysisContent.innerHTML = `
+                    <div class="insight-box" style="background: #dc3545;">
+                        <h3>⚠️ Analysis Error</h3>
+                        <p>There was an error generating your analysis. Please try again in a moment.</p>
+                        <p style="margin-top: 10px; font-size: 0.9em;">Error: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

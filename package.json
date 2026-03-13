@@ -1,0 +1,8 @@
+{
+  "name": "iela-assessment",
+  "version": "1.0.0",
+  "description": "AI-Powered Inclusion Assessment for IELA Conference",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1"
+  }
+}
